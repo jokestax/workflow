@@ -1,13 +1,18 @@
-# Use the official Go image as the base image
-FROM golang:latest
+# Use the official Alpine image as the base image
+FROM alpine:latest
+
+# Install dependencies and Go
+RUN apk update && \
+    apk add --no-cache \
+    curl \
+    git \
+    make \
+    go \
+    bash
 
 # Install GitHub CLI
-RUN apt-get update && \
-    apt-get install -y curl && \
-    curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | apt-key add - && \
-    echo "deb [arch=amd64] https://cli.github.com/packages stable main" | tee /etc/apt/sources.list.d/github-cli.list && \
-    apt-get update && \
-    apt-get install gh
+RUN apk update && \
+    apk add github-cli glab
 
 # Set the working directory in the container
 WORKDIR /workspace

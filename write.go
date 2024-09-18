@@ -42,14 +42,16 @@ func main() {
 	gitUsername := gitAuth["git_username"].(string)
 	subdomain := responseBody["subdomain_name"].(string)
 	domain := responseBody["domain_name"].(string)
+	gitprovider := responseBody["git_provider"]
 
 	fmt.Printf("Git Owner: %s\n", gitOwner)
 	fmt.Printf("Git Token: %s\n", gitToken)
 	fmt.Printf("Subdomain: %s\n", subdomain)
 	fmt.Printf("Domain: %s\n", domain)
+	fmt.Printf("Git-Provider: %s\n", gitprovider)
 
 	time.Sleep(10 * time.Minute)
-	cmd := fmt.Sprintf("./clone.sh %s %s %s %s", gitOwner, gitToken, gitUsername, clustername)
+	cmd := fmt.Sprintf("./clone.sh %s %s %s %s %s", gitprovider, gitOwner, gitToken, gitUsername, clustername)
 
 	command := exec.Command("/bin/sh", "-c", cmd)
 	output, err := command.CombinedOutput() // Captures both stdout and stderr

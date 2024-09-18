@@ -4,35 +4,43 @@ set -e
 
 sleep 12
 # Assign arguments to variables
-git_owner=$1
-gitops_token=$2
-git_username=$3
-cluster_name=$4
+git_provider=$1
+git_owner=$2
+gitops_token=$3
+git_username=$4
+cluster_name=$5
 
 # Save the token to a file (for authentication)
 echo "$gitops_token" > token.txt
 
 # Authenticate with GitHub
-gh auth login --git-protocol https --with-token < token.txt
+if [ "$git_provider" == "github" ];then 
+  gh auth login --git-protocol https --with-token < token.txt
+elif [ "$git_provider" == "gitlab" ];then 
+  glab auth login --stdin < token.txt
+fi
+
 if [ $? -ne 0 ]; then
     echo "{\"code\": 1, \"status\": 401, \"error\": \"Authentication failed.\"}"
     exit 1
 fi
 
 # Clone the repository
-url="https://$gitops_token@github.com/$git_owner/gitops.git"
-git clone "$url"
-if [ $? -ne 0 ]; then
-    echo "{\"code\": 1, \"status\": 500, \"error\": \"Failed to clone repository.\"}"
-    exit 1
+if [ "$git_provider" == "github" ]; then
+  url="https://$gitops_token@github.com/$git_owner/gitops.git"
+elif [ "$git_provider" == "gitlab" ]; then
+  url="https://oauth2:$gitops_token@gitlab.com/$git_owner/gitops.git"
+else
+  echo "{\"code\": 1, \"status\": 400, \"error\": \"Unsupported git provider.\"}"
+  exit 1
 fi
 
+git clone $url
 git config --global user.name "$git_owner"
 git config --global user.email "1@gmail.com"
 
 # Change directory to the cloned repository
 cd gitops || { echo "{\"code\": 1, \"status\": 500, \"error\": \"Failed to change directory to gitops\"}"; exit 1; }
-
 
 echo "Repository cloned successfully"
 
@@ -77,9 +85,3 @@ git add .
 git commit -m "add cloudflare issuer"
 # Attempt to push changes to the branch
 git push 
-
-
-
-
-
-
